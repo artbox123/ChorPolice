@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4aee89acb3ef0d4f9e3358658444701, type: 3}
+  m_Name: VariablesContainer
+  m_EditorClassIdentifier: 
+  cars:
+  - carSprite: {fileID: 21300000, guid: 3ebb409addadcee4a8be88d68c492263, type: 3}
+    carPrice: 0
+  - carSprite: {fileID: 21300000, guid: 62e0ebb93954e4f49a577b07fa721c71, type: 3}
+    carPrice: 50
+  - carSprite: {fileID: 21300000, guid: 9a22e59257e449e4f9a9f8726f3ab80d, type: 3}
+    carPrice: 100
+  - carSprite: {fileID: 21300000, guid: d4e0fb8b355690941b5ec59f9030c44b, type: 3}
+    carPrice: 150
+  - carSprite: {fileID: 21300000, guid: ea9b6730e157ec646b3289f0d6e6a9d8, type: 3}
+    carPrice: 200
+  - carSprite: {fileID: 21300000, guid: 301481714205fcf4f8532d615c4090c0, type: 3}
+    carPrice: 250
+  - carSprite: {fileID: 21300000, guid: dac4f77892535944996821dded5b2076, type: 3}
+    carPrice: 300
+  - carSprite: {fileID: 21300000, guid: 941a1fa7d3d031a4e97a732ca1627dba, type: 3}
+    carPrice: 350
+  - carSprite: {fileID: 21300000, guid: ecc276cc0c9e5304caca5bba38d39373, type: 3}
+    carPrice: 400
+  - carSprite: {fileID: 21300000, guid: b5d9dd7d9940d134eb7a9da94ee3967a, type: 3}
+    carPrice: 450
+  soundOnImg: {fileID: 21300000, guid: f89157a495ba3b34384b10e47aa548f4, type: 3}
+  soundOffImg: {fileID: 21300000, guid: 2608e3a60361b0342ad8938d7df9a4ec, type: 3}
+  speedPowerUp: {fileID: 21300002, guid: a40bc64906592c94989a57cf75d0ff0e, type: 3}
+  shieldPowerUp: {fileID: 21300000, guid: a40bc64906592c94989a57cf75d0ff0e, type: 3}
+  cloud1: {fileID: 21300000, guid: 0c60586a5cd31174c91282e6d8874de1, type: 3}
+  cloud2: {fileID: 21300002, guid: 0c60586a5cd31174c91282e6d8874de1, type: 3}
+  cloud3: {fileID: 21300004, guid: 0c60586a5cd31174c91282e6d8874de1, type: 3}
+  cloud4: {fileID: 21300006, guid: 0c60586a5cd31174c91282e6d8874de1, type: 3}
+  enemySign: {fileID: 21300002, guid: 82da7306a57df324ea41b5e5cf66eb1c, type: 3}
+  starSign: {fileID: 21300000, guid: 82da7306a57df324ea41b5e5cf66eb1c, type: 3}
+  starSprite: {fileID: 21300006, guid: 82da7306a57df324ea41b5e5cf66eb1c, type: 3}
+  pickUpsSign: {fileID: 21300002, guid: a40bc64906592c94989a57cf75d0ff0e, type: 3}
+  explosionEffect: {fileID: 2800000, guid: 870af351693f9c545a5a4a2c8de4dbcc, type: 3}
+  buttonSound: {fileID: 8300000, guid: fd0d5ad7cd5f3c04bb639cea3abb0eab, type: 3}
+  enemyCarSound: {fileID: 8300000, guid: bf5ae5ac569d2034fb88923b6d707a81, type: 3}
+  enemyExplosionSound: {fileID: 8300000, guid: 6af4eec4785bcad44b4003e66d5eda1c, type: 3}
+  carExplosionSound: {fileID: 8300000, guid: 9ca9fd2ce722ff342814314aa0a1d6d1, type: 3}
+  carSound: {fileID: 8300000, guid: a7f51b35201aceb49acfa17ce4802a8f, type: 3}
+  pickUpSound: {fileID: 8300000, guid: 8e39d2c124a80944a8ada8b9427920d2, type: 3}
+  adMobInterstitialID: ca-app-pub-6163322720080156/7450570211
+  admobRewardID: ca-app-pub-6163322720080156/1266443425
+  adMobBannerID: ca-app-pub-6163322720080156/1748840913
+  admobAppOpenID: ca-app-pub-3940256099942544/3419835294
+  rateButtonUrl: https://play.google.com/store/apps/details?id=com.ab.chorpolice
+  leaderBoardID: CgkI6_3Lkb4fEAIQAQ

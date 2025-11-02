@@ -19,413 +19,62 @@ namespace ArtboxGames
         private RewardedAd rewardedAd;
         private AdRequest rewarded_request;
 
-        private AppOpenAd ad;
-        private bool isShowingAd = false;
-        private DateTime loadTime;
+        private AppOpenAd appOpenAd;
+        private bool showAppOpen = true;
 
-        private Action getReward;
         private string gameId = "4085737";
         private string interstitialAdUnitId_Unity = "video";
         private string rewardAdUnitId_Unity = "rewardedVideo";
-        private int clickCount = 0;
 
-        private VariablesManager vars;
+        //private string appID = "ca-app-pub-6163322720080156~1200856637";
+        private string bannerUnitId = "ca-app-pub-6163322720080156/1748840913";
+        private string openAdUnitId = "ca-app-pub-6163322720080156/4629887529";
+        private string interstitialAdUnitId = "ca-app-pub-6163322720080156/7450570211";
+        private string rewardAdUnitId = "ca-app-pub-6163322720080156/1266443425";
+
+        private Action getReward;
+        public bool testAd = false;
 
         void Awake()
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-            vars = Resources.Load("VariablesContainer") as VariablesManager;
+            if (Instance)
+            {
+                Destroy(gameObject);
+            }
+            else
+            {
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
         }
 
         // Start is called before the first frame update
         public void Start()
         {
-            Advertisement.Initialize(gameId, false, this);  
+            if (testAd)
+            {
+                bannerUnitId = "ca-app-pub-3940256099942544/6300978111";
+                openAdUnitId = "ca-app-pub-3940256099942544/9257395921";
+                interstitialAdUnitId = "ca-app-pub-3940256099942544/1033173712";
+                rewardAdUnitId = "ca-app-pub-3940256099942544/5224354917";
+            }
+
+            Advertisement.Initialize(gameId, false, this);
 
             // Listen to application foreground and background events.
             AppStateEventNotifier.AppStateChanged += OnAppStateChanged;
 
-            // Configure TagForChildDirectedTreatment and test device IDs.
-            RequestConfiguration requestConfiguration =
-                new RequestConfiguration.Builder().build();
-
-            MobileAds.SetRequestConfiguration(requestConfiguration);
-            MobileAds.SetiOSAppPauseOnBackground(true);
-
             // Initialize the Google Mobile Ads SDK.
-            MobileAds.Initialize(HandleInitCompleteAction);            
-
-            getReward = GetReward;
-        }
-
-        private void HandleInitCompleteAction(InitializationStatus initstatus)
-        {
-            // Callbacks from GoogleMobileAds are not guaranteed to be called on
-            // main thread.
-            // In this example we use MobileAdsEventExecutor to schedule these calls on
-            // the next Update() loop.
-            MobileAdsEventExecutor.ExecuteInUpdate(() =>
+            MobileAds.Initialize(initStatus =>
             {
+                Debug.Log("=== MobileAds init success");
                 RequestBanner();
                 RequestInterstitial();
                 RequestRewarded();
-                LoadAppOpenAd();                
+                LoadAppOpenAd();
             });
-        }
 
-        private void RequestBanner()
-        {
-            // Create a 320x50 banner at the top of the screen.
-            AdSize adSize = new AdSize(340, 50);
-            this.bannerView = new BannerView(vars.adMobBannerID, AdSize.Banner, AdPosition.Bottom);
-
-            // Create an empty ad request.
-            banner_request = new AdRequest.Builder().Build();
-
-            // Called when an ad request has successfully loaded.
-            this.bannerView.OnAdLoaded += this.HandleBannerAdLoaded;
-            // Called when an ad request failed to load.
-            this.bannerView.OnAdFailedToLoad += this.HandleBannerAdFailedToLoad;
-            // Called when an ad is clicked.
-            this.bannerView.OnAdOpening += this.HandleBannerAdOpened;
-            // Called when the user returned from the app after an ad click.
-            this.bannerView.OnAdClosed += this.HandleBannerAdClosed;
-
-            // Load the banner with the request.
-            this.bannerView.LoadAd(banner_request);
-        }
-
-        private void RequestInterstitial()
-        {
-            // Initialize an InterstitialAd.
-            this.interstitial = new InterstitialAd(vars.adMobInterstitialID);
-
-            // Called when an ad request has successfully loaded.
-            this.interstitial.OnAdLoaded += HandleOnAdLoaded;
-            // Called when an ad request failed to load.
-            this.interstitial.OnAdFailedToLoad += HandleOnAdFailedToLoad;
-            // Called when an ad is shown.
-            this.interstitial.OnAdOpening += HandleOnAdOpened;
-            // Called when the ad is closed.
-            this.interstitial.OnAdClosed += HandleOnAdClosed;
-
-            // Create an empty ad request.
-            this.interstitial_request = new AdRequest.Builder().Build();
-            // Load the interstitial with the request.
-            this.interstitial.LoadAd(interstitial_request);
-        }
-
-        private void RequestRewarded()
-        {
-            this.rewardedAd = new RewardedAd(vars.admobRewardID);
-            // Called when an ad request has successfully loaded.
-            this.rewardedAd.OnAdLoaded += HandleRewardedAdLoaded;
-            // Called when an ad request failed to load.
-            this.rewardedAd.OnAdFailedToLoad += HandleRewardedAdFailedToLoad;
-            // Called when an ad is shown.
-            this.rewardedAd.OnAdOpening += HandleRewardedAdOpening;
-            // Called when an ad request failed to show.
-            this.rewardedAd.OnAdFailedToShow += HandleRewardedAdFailedToShow;
-            // Called when the user should be rewarded for interacting with the ad.
-            this.rewardedAd.OnUserEarnedReward += HandleUserEarnedReward;
-            // Called when the ad is closed.
-            this.rewardedAd.OnAdClosed += HandleRewardedAdClosed;
-
-            // Create an empty ad request.
-            rewarded_request = new AdRequest.Builder().Build();
-            // Load the rewarded ad with the request.
-            this.rewardedAd.LoadAd(rewarded_request);
-        }
-
-        private void LoadAppOpenAd()
-        {
-            AdRequest request = new AdRequest.Builder().Build();
-
-            // Load an app open ad for portrait orientation
-            AppOpenAd.LoadAd(vars.admobAppOpenID, ScreenOrientation.Portrait, request, ((appOpenAd, error) =>
-            {
-                if (error != null)
-                {
-                    // Handle the error.
-                    Debug.LogFormat("Failed to load the ad. (reason: {0})", error.LoadAdError.GetMessage());
-                    return;
-                }
-
-                // App open ad is loaded.
-                ad = appOpenAd;
-                loadTime = DateTime.UtcNow;
-            }));
-        }
-
-        private bool IsAdAvailable
-        {
-            get
-            {
-                return ad != null && (System.DateTime.UtcNow - loadTime).TotalHours < 4;
-            }
-        }
-
-        public void ShowAdIfAvailable()
-        {
-            if (!IsAdAvailable || isShowingAd)
-            {
-                return;
-            }
-
-            ad.OnAdDidDismissFullScreenContent += HandleAdDidDismissFullScreenContent;
-            ad.OnAdFailedToPresentFullScreenContent += HandleAdFailedToPresentFullScreenContent;
-            ad.OnAdDidPresentFullScreenContent += HandleAdDidPresentFullScreenContent;
-            ad.OnAdDidRecordImpression += HandleAdDidRecordImpression;
-            ad.OnPaidEvent += HandlePaidEvent;
-
-            ad.Show();
-        }
-
-        // Returns an ad request with custom ad targeting.
-        private AdRequest CreateAdRequest()
-        {
-            return new AdRequest.Builder()
-                    .AddKeyword("game")
-                    .Build();
-        }
-
-        private void OnAppStateChanged(AppState state)
-        {
-            // Display the app open ad when the app is foregrounded.
-            //Debug.Log("======= App State is " + state);
-            if (state == AppState.Foreground)
-            {
-                ShowAdIfAvailable();
-            }
-        }
-
-        public bool ShowRewardVideo()
-        {
-            if (rewardedAd.IsLoaded())
-            {
-                rewardedAd.Show();
-                return true;
-            }
-            else
-            {
-                RequestRewarded();
-                return ShowUnityRewardedVideo();
-            }
-        }
-
-        public void ShowInterstitial()
-        {
-            if (interstitial.IsLoaded())
-            {
-                interstitial.Show();
-            }
-            else
-            {
-                RequestInterstitial();
-                ShowUnityInterstitialAd();
-            }
-        }
-
-        public void HandleRewardedAdLoaded(object sender, EventArgs args)
-        {
-            MonoBehaviour.print("HandleRewardedAdLoaded event received");
-        }
-
-        public void HandleRewardedAdFailedToLoad(object sender, AdFailedToLoadEventArgs args)
-        {
-            MonoBehaviour.print(
-                "HandleRewardedAdFailedToLoad event received with message: "
-                                 + args.LoadAdError);
-        }
-
-        public void HandleRewardedAdOpening(object sender, EventArgs args)
-        {
-            MonoBehaviour.print("HandleRewardedAdOpening event received");
-        }
-
-        public void HandleRewardedAdFailedToShow(object sender, AdErrorEventArgs args)
-        {
-            MonoBehaviour.print(
-                "HandleRewardedAdFailedToShow event received with message: "
-                                 + args.AdError);
-        }
-
-        public void HandleRewardedAdClosed(object sender, EventArgs args)
-        {
-            MonoBehaviour.print("HandleRewardedAdClosed event received");
-            RequestRewarded();
-        }
-
-        public void HandleUserEarnedReward(object sender, Reward args)
-        {
-            string type = args.Type;
-            double amount = args.Amount;
-            MonoBehaviour.print(
-                "HandleRewardedAdRewarded event received for "
-                            + amount.ToString() + " " + type);
-            getReward?.Invoke();
-        }
-
-        // interstitial
-        public void HandleOnAdLoaded(object sender, EventArgs args)
-        {
-            MonoBehaviour.print("HandleAdLoaded event received");
-        }
-
-        public void HandleOnAdFailedToLoad(object sender, AdFailedToLoadEventArgs args)
-        {
-            MonoBehaviour.print("HandleFailedToReceiveAd event received with message: "
-                                + args.LoadAdError);
-        }
-
-        public void HandleOnAdOpened(object sender, EventArgs args)
-        {
-            MonoBehaviour.print("HandleAdOpened event received");
-        }
-
-        public void HandleOnAdClosed(object sender, EventArgs args)
-        {
-            MonoBehaviour.print("HandleAdClosed event received");
-            RequestInterstitial();
-        }
-
-        public void HandleOnAdLeavingApplication(object sender, EventArgs args)
-        {
-            MonoBehaviour.print("HandleAdLeavingApplication event received");
-        }
-
-        // banner
-        public void HandleBannerAdLoaded(object sender, EventArgs args)
-        {
-            MonoBehaviour.print("HandleBannerAdLoaded event received");
-            bannerView.Show();
-        }
-
-        public void HandleBannerAdFailedToLoad(object sender, AdFailedToLoadEventArgs args)
-        {
-            MonoBehaviour.print("HandleBannerAdFailedToLoad event received with message: "
-                                + args.LoadAdError);
-        }
-
-        public void HandleBannerAdOpened(object sender, EventArgs args)
-        {
-            MonoBehaviour.print("HandleBannerAdOpened event received");
-        }
-
-        public void HandleBannerAdClosed(object sender, EventArgs args)
-        {
-            MonoBehaviour.print("HandleBannerAdClosed event received");
-        }
-
-        public void HandleBannerAdLeavingApplication(object sender, EventArgs args)
-        {
-            MonoBehaviour.print("HandleBannerAdLeavingApplication event received");
-        }
-        // app open
-
-        private void HandleAdDidDismissFullScreenContent(object sender, EventArgs args)
-        {
-            Debug.Log("Closed app open ad");
-            // Set the ad to null to indicate that AppOpenAdManager no longer has another ad to show.
-            ad = null;
-            isShowingAd = false;
-            LoadAppOpenAd();
-        }
-
-        private void HandleAdFailedToPresentFullScreenContent(object sender, AdErrorEventArgs args)
-        {
-            Debug.LogFormat("Failed to present the ad (reason: {0})", args.AdError.GetMessage());
-            // Set the ad to null to indicate that AppOpenAdManager no longer has another ad to show.
-            ad = null;
-            LoadAppOpenAd();
-        }
-
-        private void HandleAdDidPresentFullScreenContent(object sender, EventArgs args)
-        {
-            Debug.Log("Displayed app open ad");
-            isShowingAd = true;
-        }
-
-        private void HandleAdDidRecordImpression(object sender, EventArgs args)
-        {
-            Debug.Log("Recorded ad impression");
-        }
-
-        private void HandlePaidEvent(object sender, AdValueEventArgs args)
-        {
-            Debug.LogFormat("Received paid event. (currency: {0}, value: {1}",
-                    args.AdValue.CurrencyCode, args.AdValue.Value);
-        }
-        // ------------------------------------------------
-
-        public void OnInitializationComplete()
-        {
-            Debug.Log("Unity Ads initialization complete.");
-            LoadUnityInterstitialAd();
-            LoadUnityRewaredAd();
-        }
-
-        public void OnInitializationFailed(UnityAdsInitializationError error, string message)
-        {
-            Debug.Log($"Unity Ads Initialization Failed: {error.ToString()} - {message}");
-        }
-
-        public void LoadUnityInterstitialAd()
-        {
-            // IMPORTANT! Only load content AFTER initialization (in this example, initialization is handled in a different script).
-            Advertisement.Load(interstitialAdUnitId_Unity);
-        }
-
-        // Show the loaded content in the Ad Unit: 
-        public void ShowUnityInterstitialAd()
-        {
-            Advertisement.Show(interstitialAdUnitId_Unity);
-        }
-
-        public void LoadUnityRewaredAd()
-        {
-            // IMPORTANT! Only load content AFTER initialization (in this example, initialization is handled in a different script).
-            Advertisement.Load(rewardAdUnitId_Unity);
-        }
-
-        public bool ShowUnityRewardedVideo()
-        {
-            Advertisement.Load(rewardAdUnitId_Unity);
-            return true;
-        }
-
-        // Implement Load Listener and Show Listener interface methods:  
-        public void OnUnityAdsAdLoaded(string adUnitId)
-        {
-            // Optionally execute code if the Ad Unit successfully loads content.       
-        }
-
-        public void OnUnityAdsFailedToLoad(string adUnitId, UnityAdsLoadError error, string message)
-        {
-            Debug.Log($"Error loading Ad Unit: {adUnitId} - {error.ToString()} - {message}");
-            // Optionally execute code if the Ad Unit fails to load, such as attempting to try again.
-        }
-
-        public void OnUnityAdsShowFailure(string adUnitId, UnityAdsShowError error, string message)
-        {
-            Debug.Log($"Error showing Ad Unit {adUnitId}: {error.ToString()} - {message}");
-            // Optionally execute code if the Ad Unit fails to show, such as loading another ad.
-        }
-
-        public void OnUnityAdsShowStart(string adUnitId) { }
-        public void OnUnityAdsShowClick(string adUnitId) { }
-        public void OnUnityAdsShowComplete(string adUnitId, UnityAdsShowCompletionState showCompletionState)
-        {
-            if (adUnitId.Equals(interstitialAdUnitId_Unity))
-            {
-                LoadUnityInterstitialAd();
-            }
-            else if (adUnitId.Equals(rewardAdUnitId_Unity))
-            {
-                getReward?.Invoke();
-                LoadUnityRewaredAd();
-            }
+            getReward = GetReward;
         }
 
         private void GetReward()
@@ -434,14 +83,357 @@ namespace ArtboxGames
             UIManager.instance.totalStarCount.text = GameManager.instance.coins.ToString();
         }
 
-        public void ShowFullScreen()
+        private void RequestBanner()
         {
-            clickCount++;
-            if (clickCount >= 5)
+            if (bannerView != null)
             {
-                ShowInterstitial();
-                clickCount = 0;
+                bannerView.Destroy();
+                bannerView = null;
             }
+
+            // Create a 320x50 banner at the top of the screen.
+            bannerView = new BannerView(bannerUnitId, AdSize.Banner, AdPosition.Bottom);
+
+            // Create an empty ad request.
+            banner_request = new AdRequest();
+
+            // Raised when an ad is loaded into the banner view.
+            bannerView.OnBannerAdLoaded += () =>
+            {
+                Debug.Log("Banner view loaded an ad with response : "
+                    + this.bannerView.GetResponseInfo());
+            };
+            // Raised when an ad fails to load into the banner view.
+            bannerView.OnBannerAdLoadFailed += (LoadAdError error) =>
+            {
+                Debug.LogError("Banner view failed to load an ad with error : "
+                    + error);
+            };
+            // Raised when the ad is estimated to have earned money.
+            bannerView.OnAdPaid += (AdValue adValue) =>
+            {
+                Debug.Log(String.Format("Banner view paid {0} {1}.",
+                    adValue.Value,
+                    adValue.CurrencyCode));
+            };
+            // Raised when an impression is recorded for an ad.
+            bannerView.OnAdImpressionRecorded += () =>
+            {
+                Debug.Log("Banner view recorded an impression.");
+            };
+            // Raised when a click is recorded for an ad.
+            bannerView.OnAdClicked += () =>
+            {
+                Debug.Log("Banner view was clicked.");
+            };
+            // Raised when an ad opened full screen content.
+            bannerView.OnAdFullScreenContentOpened += () =>
+            {
+                Debug.Log("Banner view full screen content opened.");
+            };
+            // Raised when the ad closed full screen content.
+            bannerView.OnAdFullScreenContentClosed += () =>
+            {
+                Debug.Log("Banner view full screen content closed.");
+            };
+
+            // Load the banner with the request.
+            bannerView.LoadAd(banner_request);
+        }
+
+        private void RequestInterstitial()
+        {
+            if (interstitial != null)
+            {
+                interstitial.Destroy();
+                interstitial = null;
+            }
+
+            // create our request used to load the ad.
+            interstitial_request = new AdRequest();
+            // Initialize an InterstitialAd.
+            InterstitialAd.Load(interstitialAdUnitId, interstitial_request, (InterstitialAd ad, LoadAdError error) =>
+            {
+                // if error is not null, the load request failed.
+                if (error != null || ad == null)
+                {
+                    Debug.LogError("interstitial ad failed to load an ad " +
+                                   "with error : " + error);
+                    return;
+                }
+
+                Debug.Log("Interstitial ad loaded with response : "
+                          + ad.GetResponseInfo());
+
+                interstitial = ad;
+            });
+        }
+
+        private void RequestRewarded()
+        {
+            // Clean up the old ad before loading a new one.
+            if (rewardedAd != null)
+            {
+                rewardedAd.Destroy();
+                rewardedAd = null;
+            }
+
+            // create our request used to load the ad.
+            rewarded_request = new AdRequest();
+            // send the request to load the ad.
+            RewardedAd.Load(rewardAdUnitId, rewarded_request,
+                (RewardedAd ad, LoadAdError error) =>
+                {
+                    // if error is not null, the load request failed.
+                    if (error != null || ad == null)
+                    {
+                        Debug.LogError("Rewarded ad failed to load an ad " +
+                                       "with error : " + error);
+                        return;
+                    }
+
+                    Debug.Log("Rewarded ad loaded with response : "
+                              + ad.GetResponseInfo());
+
+                    rewardedAd = ad;
+                });
+        }
+
+        public void LoadAppOpenAd()
+        {
+            // Clean up the old ad before loading a new one.
+            if (appOpenAd != null)
+            {
+                appOpenAd.Destroy();
+                appOpenAd = null;
+            }
+
+            Debug.Log("Loading the app open ad.");
+
+            // Create our request used to load the ad.
+            AdRequest adRequest = new AdRequest();
+
+            // send the request to load the ad.
+            AppOpenAd.Load(openAdUnitId, adRequest,
+                (AppOpenAd ad, LoadAdError error) =>
+                {
+                    // if error is not null, the load request failed.
+                    if (error != null || ad == null)
+                    {
+                        Debug.LogError("app open ad failed to load an ad " +
+                                       "with error : " + error);
+                        return;
+                    }
+
+                    Debug.Log("App open ad loaded with response : "
+                              + ad.GetResponseInfo());
+
+                    appOpenAd = ad;
+                    RegisterEventHandlers(ad);
+
+                    if (showAppOpen)
+                    {
+                        showAppOpen = false;
+                        ShowAppOpenAd();
+                    }
+                });
+        }
+
+        private void RegisterEventHandlers(AppOpenAd ad)
+        {
+            // Raised when the ad is estimated to have earned money.
+            ad.OnAdPaid += (AdValue adValue) =>
+            {
+                Debug.Log(String.Format("App open ad paid {0} {1}.",
+                    adValue.Value,
+                    adValue.CurrencyCode));
+            };
+            // Raised when an impression is recorded for an ad.
+            ad.OnAdImpressionRecorded += () =>
+            {
+                Debug.Log("App open ad recorded an impression.");
+            };
+            // Raised when a click is recorded for an ad.
+            ad.OnAdClicked += () =>
+            {
+                Debug.Log("App open ad was clicked.");
+            };
+            // Raised when an ad opened full screen content.
+            ad.OnAdFullScreenContentOpened += () =>
+            {
+                Debug.Log("App open ad full screen content opened.");
+            };
+            // Raised when the ad closed full screen content.
+            ad.OnAdFullScreenContentClosed += () =>
+            {
+                Debug.Log("App open ad full screen content closed.");
+
+                // Reload the ad so that we can show another as soon as possible.
+                LoadAppOpenAd();
+            };
+            // Raised when the ad failed to open full screen content.
+            ad.OnAdFullScreenContentFailed += (AdError error) =>
+            {
+                Debug.LogError("App open ad failed to open full screen content " +
+                               "with error : " + error);
+            };
+        }
+
+        public bool IsAdAvailable
+        {
+            get
+            {
+                return appOpenAd != null;
+            }
+        }
+
+        public void ShowAppOpenAd()
+        {
+            if (appOpenAd != null && appOpenAd.CanShowAd())
+            {
+                Debug.Log("Showing app open ad.");
+                appOpenAd.Show();
+            }
+            else
+            {
+                Debug.LogError("App open ad is not ready yet.");
+            }
+        }
+
+        // Returns an ad request with custom ad targeting.
+        private AdRequest CreateAdRequest()
+        {
+            return new AdRequest();
+        }
+
+        private void OnAppStateChanged(AppState state)
+        {
+            // Display the app open ad when the app is foregrounded.
+            //Debug.Log("======= App State is " + state);
+            if (state == AppState.Foreground)
+            {
+                ShowAppOpenAd();
+            }
+        }
+
+        public void OnInitializationComplete()
+        {
+            Debug.Log("=== OnInitializationComplete");
+
+            LoadUnityInterstitialAd();
+            LoadUnityRewardedAds();
+        }
+
+        public void LoadUnityInterstitialAd()
+        {
+            // IMPORTANT! Only load content AFTER initialization (in this example, initialization is handled in a different script).
+            Advertisement.Load(interstitialAdUnitId_Unity, this);
+        }
+
+        // Show the loaded content in the Ad Unit: 
+        public void ShowUnityInterstitialAd()
+        {
+            // Note that if the ad content wasn't previously loaded, this method will fail
+            Advertisement.Show(interstitialAdUnitId_Unity, this);
+        }
+
+        public void LoadUnityRewardedAds()
+        {
+            Advertisement.Load(rewardAdUnitId_Unity, this);
+        }
+
+        public bool ShowUnityRewardedVideo()
+        {
+            Advertisement.Show(rewardAdUnitId_Unity, this);
+            return true;
+        }
+
+        public void OnUnityAdsAdLoaded(string placementId)
+        {
+            Debug.Log("OnUnityAdsAdLoaded : " + placementId);
+        }
+
+        public void OnUnityAdsFailedToLoad(string placementId, UnityAdsLoadError error, string message)
+        {
+            Debug.Log("OnUnityAdsFailedToLoad : " + placementId);
+        }
+
+        public void OnUnityAdsShowFailure(string placementId, UnityAdsShowError error, string message)
+        {
+            Debug.Log("OnUnityAdsShowFailure : " + placementId);
+        }
+
+        public void OnUnityAdsShowStart(string placementId)
+        {
+            Debug.Log("OnUnityAdsShowStart : " + placementId);
+        }
+
+        public void OnUnityAdsShowClick(string placementId)
+        {
+            Debug.Log("OnUnityAdsShowClick : " + placementId);
+        }
+
+        public void OnUnityAdsShowComplete(string placementId, UnityAdsShowCompletionState showCompletionState)
+        {
+            Debug.Log("OnUnityAdsShowComplete : " + placementId);
+
+            if (placementId.Equals(interstitialAdUnitId_Unity))
+            {
+                LoadUnityInterstitialAd();
+            }
+            else if (placementId.Equals(rewardAdUnitId_Unity))
+            {
+                getReward?.Invoke();
+                LoadUnityRewardedAds();
+            }
+        }
+
+        public void OnInitializationFailed(UnityAdsInitializationError error, string message)
+        {
+            Debug.Log("OnInitializationFailed : " + message);
+        }
+
+        public bool ShowRewardVideo()
+        {
+            const string rewardMsg = "Rewarded ad rewarded the user. Type: {0}, amount: {1}.";
+            if (rewardedAd != null && rewardedAd.CanShowAd())
+            {
+                rewardedAd.Show((Reward reward) =>
+                {
+                    // TODO: Reward the user.
+                    Debug.Log(String.Format(rewardMsg, reward.Type, reward.Amount));
+                    getReward?.Invoke();
+                });
+                return true;
+            }
+            else
+            {
+                RequestRewarded();
+                return ShowUnityRewardedVideo(); ;
+            }
+        }
+
+        public void ShowInterstitial()
+        {
+            if (interstitial != null && interstitial.CanShowAd())
+                interstitial.Show();
+            else
+            {
+                RequestInterstitial();
+                ShowUnityInterstitialAd();
+            }
+        }
+
+        public void HideBanner()
+        {
+            if (this.bannerView != null)
+                this.bannerView.Hide();
+        }
+
+        public void ShowBanner()
+        {
+            if (this.bannerView != null)
+                this.bannerView.Show();
         }
     }
 }

@@ -126,7 +126,6 @@ namespace ArtboxGames
             gameStarted = true;
             joystick.SetActive(true);
             CarSpawner.instance.SpawnPlane();
-            AdsManager.Instance.ShowFullScreen();
         }
 
         public void MenuBtn()
@@ -134,7 +133,6 @@ namespace ArtboxGames
             SoundManager.instance.ButtonPress();
             string sceneName = SceneManager.GetActiveScene().name;
             SceneManager.LoadScene(sceneName);
-            AdsManager.Instance.ShowFullScreen();
         }
 
         public void ShareBtn()
@@ -149,7 +147,6 @@ namespace ArtboxGames
             GameManager.instance.restart = true;
             string sceneName = SceneManager.GetActiveScene().name;
             SceneManager.LoadScene(sceneName);
-            AdsManager.Instance.ShowFullScreen();
         }
 
         public void MoreStarBtn()
@@ -161,7 +158,7 @@ namespace ArtboxGames
         public void LeaderboardBtn()
         {
             SoundManager.instance.ButtonPress();
-            FindObjectOfType<Leadersboard>().ShowLeadersboard();
+            FindAnyObjectByType<Leadersboard>().ShowLeadersboard();
         }
 
         public void RateUsBtn()
@@ -188,7 +185,6 @@ namespace ArtboxGames
                 SoundManager.instance.mainMenuUI.soundImage.sprite = vars.soundOnImg;
                 GameManager.instance.Save();
             }
-            AdsManager.Instance.ShowFullScreen();
         }
 
         public void VibrateBtn()
@@ -207,18 +203,20 @@ namespace ArtboxGames
                 SoundManager.instance.mainMenuUI.vibrateImage.sprite = vars.soundOnImg;
                 GameManager.instance.Save();
             }
-            AdsManager.Instance.ShowFullScreen();
         }
 
         public void GameOver()
         {
+            if (gameOverMenu.activeSelf)
+                return;
+
             gameStarted = false;
             joystick.SetActive(false);
 
             gameOverScore.text = "" + GameManager.instance.currentScore;
             gameOverBestScore.text = "Best " + GameManager.instance.highScore;
 
-            FindObjectOfType<Leadersboard>().ReportScore(GameManager.instance.highScore);
+            FindAnyObjectByType<Leadersboard>().ReportScore(GameManager.instance.highScore);
             if (GameManager.instance.currentScore > GameManager.instance.highScore)
             {
                 GameManager.instance.highScore = GameManager.instance.currentScore;
@@ -229,7 +227,7 @@ namespace ArtboxGames
             gameOverStarPoints.text = "+" + (2 * GameManager.instance.currentStars);
 
             gameOverMenu.SetActive(true);
-            AdsManager.Instance.ShowFullScreen();
+            AdsManager.Instance.ShowInterstitial();
         }
     }
 }

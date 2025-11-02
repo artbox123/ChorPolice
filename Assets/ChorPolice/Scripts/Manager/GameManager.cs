@@ -215,7 +215,6 @@ namespace ArtboxGames
         public void OnSetting()
         {
             SoundManager.instance.ButtonPress();
-            AdsManager.Instance.ShowFullScreen();
         }
     }
 

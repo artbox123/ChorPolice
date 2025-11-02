@@ -38,7 +38,7 @@ namespace ArtboxGames
         {   //we check if game is not started or game is over , if yes we exit from update
             if (GameManager.instance.isGameOver || UIManager.instance.GameStarted == false)
             {
-                myBody.velocity = Vector3.zero;
+                myBody.linearVelocity = Vector3.zero;
                 myBody.angularVelocity = 0f;
                 return;
             }
@@ -83,7 +83,7 @@ namespace ArtboxGames
             //we then rotate the enemyCar toward the target 
             myBody.angularVelocity = rotatingSpeed * value;
             //and give it speed
-            myBody.velocity = transform.right * speed;
+            myBody.linearVelocity = transform.right * speed;
         }
         //method called when the enemyCar is spawned
         public void BasicSettings()

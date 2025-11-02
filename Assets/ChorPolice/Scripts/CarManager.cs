@@ -87,7 +87,7 @@ namespace ArtboxGames
             if (GameManager.instance.isGameOver || UIManager.instance.GameStarted == false)
                 return;
             //move the car
-            myBody.velocity = direction * moveSpeed;
+            myBody.linearVelocity = direction * moveSpeed;
         }
 
         void Movement()
